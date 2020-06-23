@@ -30,7 +30,7 @@ else
   sudo yum install -y docker xfsprogs
   if ! command -v python3.6 &>/dev/null; then
     sudo yum -y groupinstall development
-    sudo yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+    sudo yum -y install https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install python36u
   fi
   sudo ln -sf "$(command -v python3.6)" /usr/bin/python3
@@ -95,7 +95,7 @@ sleep 1
 sudo docker --debug push localhost:5000/ceph/daemon:latest-master
 
 cd "$CEPH_ANSIBLE_SCENARIO_PATH"
-vagrant up --no-provision --provider="$VAGRANT_PROVIDER"
+bash "$TOXINIDIR"/ceph-ansible/tests/scripts/vagrant_up.sh --no-provision --provider="$VAGRANT_PROVIDER"
 
 bash "$TOXINIDIR"/ceph-ansible/tests/scripts/generate_ssh_config.sh "$CEPH_ANSIBLE_SCENARIO_PATH"
 
@@ -107,7 +107,7 @@ ansible-playbook -vv -i "$CEPH_ANSIBLE_SCENARIO_PATH"/hosts "$TOXINIDIR"/ceph-an
 ansible-playbook -vv -i "$CEPH_ANSIBLE_SCENARIO_PATH"/hosts "$TOXINIDIR"/ceph-ansible/tests/functional/setup.yml
 ansible-playbook -vv -i "$CEPH_ANSIBLE_SCENARIO_PATH"/hosts "$TOXINIDIR"/ceph-ansible/site-container.yml.sample --extra-vars="ceph_docker_image_tag=latest-master ceph_docker_registry=$REGISTRY_ADDRESS fetch_directory=$CEPH_ANSIBLE_SCENARIO_PATH/fetch"
 
-py.test --reruns 5 --reruns-delay 1 -n 4 --sudo -v --connection=ansible --ansible-inventory="$CEPH_ANSIBLE_SCENARIO_PATH"/hosts --ssh-config="$CEPH_ANSIBLE_SCENARIO_PATH"/vagrant_ssh_config "$TOXINIDIR"/ceph-ansible/tests/functional/tests
+py.test --reruns 5 --reruns-delay 1 -n 8 --sudo -v --connection=ansible --ansible-inventory="$CEPH_ANSIBLE_SCENARIO_PATH"/hosts --ssh-config="$CEPH_ANSIBLE_SCENARIO_PATH"/vagrant_ssh_config "$TOXINIDIR"/ceph-ansible/tests/functional/tests
 
 # teardown
 #################################################################################
